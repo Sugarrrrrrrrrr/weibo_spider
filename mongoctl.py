@@ -56,7 +56,8 @@ class MongoCtl:
 
     def get_mid_to_crawl(self):
         data = self.mids.find_one_and_update(
-            {'status': STATUS_OUTSTANDING}, {'$set': {'status': STATUS_PROCESSING}}, sort=[('_id', pymongo.DESCENDING)]
+            {'status': STATUS_OUTSTANDING}, {'$set': {'status': STATUS_PROCESSING}},
+            sort=[('update_time', pymongo.DESCENDING)]
         )
         try:
             mid = data['mid']
@@ -66,73 +67,59 @@ class MongoCtl:
 
     def get_mids_to_crawl(self, n=10000):
         mids = list()
-        for i in range(n):
-            mid = self.get_mid_to_crawl()
-            if mid is None:
-                break
-            mids.append(mid)
+        data = self.mids.find({'status': STATUS_OUTSTANDING}, sort=[('update_time', pymongo.DESCENDING)]).limit(n)
+        for record in data:
+            mids.append(record['mid'])
         return mids
 
-    def change_mid_status(self, mid, status):
-        self.mids.find_one_and_update(
-            {'mid': mid}, {'$set': {'status': status}}
-        )
-
-
-def test1():
-    uid = '2214838983'
-    mid = '4270446973039872'
-
-    data = {
-        'userInfo': {
-            'id': 2214838983,
-            'statuses_count': 7777,
-            'time': 2
-        }
-    }
-
-    mongoctl = MongoCtl()
-    records = mongoctl.mids.find(sort=[('_id', pymongo.DESCENDING)]).limit(5)
-    try:
-        mongoctl.client.test.mids.insert(records)
-    except Exception as e:
-        if isinstance(e, pymongo.errors.DuplicateKeyError):
-            print('already exist')
+    def change_mid_status(self, mid, status, former_status=None):
+        if former_status is None:
+            data = self.mids.find_one_and_update(
+                {'mid': mid}, {'$set': {'status': status}}
+            )
         else:
-            print(e)
+            data = self.mids.find_one_and_update(
+                {'mid': mid, 'status': former_status}, {'$set': {'status': status}}
+            )
+        if data is None:
+            return False
+        else:
+            return True
 
-    def get_mid_to_crawl():
-        data = mongoctl.client.test.mids.find_one_and_update(
-            {'status': STATUS_OUTSTANDING}, {'$set': {'status': STATUS_PROCESSING}}, sort=[('_id', pymongo.DESCENDING)]
+    def get_mids_num(self, status=STATUS_OUTSTANDING):
+        return self.mids.find({'status': status}).count()
+
+    def handle_mids_with_status_processing_exception(self):
+        self.mids.update_many(
+            {'status': STATUS_PROCESSING}, {'$set': {'status': STATUS_OUTSTANDING}}
         )
-        try:
-            mid = data['mid']
-        except Exception as e:
-            mid = None
-        return mid
 
-    def get_mids_to_crawl(n=10):
-        mids = list()
-        for i in range(n):
-            mid = get_mid_to_crawl()
-            if mid is None:
-                break
-            mids.append(mid)
-        return mids
-
-    mids = get_mids_to_crawl()
-    input(mids)
-
-    status = STATUS_OUTSTANDING
-    for mid in mids:
-        mongoctl.client.test.mids.find_one_and_update(
-            {'mid': mid}, {'$set': {'status': status}}
+    def handle_mids_with_status_error_exception(self, n=10000):
+        # 1
+        self.mids.update_many(
+            {'status': STATUS_ERROR, 'retry': {'$exists': False}}, {'$set': {'retry': 0}}
+        )
+        # 2
+        self.mids.remove({'status': STATUS_ERROR, 'retry': {'$gte': error_mid_max_retry_time}})
+        # 3
+        self.mids.update_many(
+            {'status': STATUS_ERROR},
+            {'$set': {'status': STATUS_OUTSTANDING}, '$inc': {'retry': 1}}
         )
 
 
 if __name__ == '__main__':
     mongoctl = MongoCtl()
-    data = mongoctl.mblogs.find_one()
-    print(len(data['text']))
-    print(data.keys())
-    print(data['textLength'])
+    mid = '4298678506759937'
+    former_status = STATUS_PROCESSING
+    status = STATUS_OUTSTANDING
+
+    data = mongoctl.client.test.mids.find()
+    print(data.count())
+
+    # data = mongoctl.mids.find({'status': STATUS_ERROR}, sort=[('update_time', pymongo.DESCENDING)])
+    # mongoctl.client.test.mids.insert(data)
+
+    # data = mongoctl.client.test.mids.find({'status': STATUS_ERROR}, sort=[('update_time', pymongo.DESCENDING)])
+
+    mongoctl.handle_mids_with_status_error_exception()

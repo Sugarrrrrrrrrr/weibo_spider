@@ -34,7 +34,7 @@ def get_dict_with_url(url, max_retry_time=max_retry_time):
         except Exception as e:
             pass
             # print(e)
-    print('can not get {}'.format(url))
+    # print('can not get {}'.format(url))
     return {'ok': 0, 'failure_reason': 'proxy error: the maximum number of retry is reached.'}
 
 
@@ -59,11 +59,11 @@ def update_user_data_and_mids_queue(uid):
         count = statuses_count_new - statuses_count_old
         if count > 0:
             urls = get_mblog_list_urls(uid, count)
-            run_with_threads(add_mids_to_workqueue, urls, 10)
+            run_with_threads(add_mids_to_workqueue, urls, max_thread_num_for_mids_add)
 
             # update user data
             mongoctl.update_user_data(data)
-    print('{} update finish'.format(uid))
+    # print('{} update finish'.format(uid))
 
 
 def get_mblog_list_url(uid, page=1):
@@ -102,6 +102,9 @@ def add_mids_to_workqueue(url):
 
 
 def get_mblog_by_mid(mid):
+    if not mongoctl.change_mid_status(mid, STATUS_PROCESSING, STATUS_OUTSTANDING):
+        return
+
     url = get_mblog_url(mid)
     r_d = get_dict_with_url(url)
 
@@ -113,14 +116,21 @@ def get_mblog_by_mid(mid):
         status = STATUS_COMPLETE
         data = r_d['data']
         # update_user_data
-        mongoctl.update_mblog_data(data)
+        try:
+            mongoctl.update_mblog_data(data)
+        except Exception as e:
+            print('update_mblog_data error# ', e)
 
     mongoctl.change_mid_status(mid, status)
 
 
-def mblogs_crawler(n=10000, thread_num=max_thread_num_for_mblogs_crawl):
+def mblogs_crawl(n=10000, thread_num=max_thread_num_for_mblogs_crawl):
     mids = mongoctl.get_mids_to_crawl(n)
     run_with_threads(get_mblog_by_mid, mids, thread_num)
+
+
+def get_outstanding_mids_num():
+    return mongoctl.get_mids_num(STATUS_OUTSTANDING)
 
 
 if __name__ == '__main__':
@@ -132,15 +142,12 @@ if __name__ == '__main__':
         for line in f:
             uids.append(line.strip())
 
-    # run_with_threads(add_mids_to_workqueue, get_mblog_list_urls(uid, 1000))
-    # update_user_data_and_mids_queue(uid)
-    # run_with_threads(update_user_data_and_mids_queue, uids, 100)
+    mid = '4287308922105580'
+    url = get_mblog_url(mid)
 
-    # mid = mongoctl.get_mid_to_crawl()
-    # get_mblog_by_mid(mid)
+    print(url)
+    r_d = get_dict_with_url(url)
 
-    # mblogs_crawler
-    mblogs_crawler(10000)
 
 
 
