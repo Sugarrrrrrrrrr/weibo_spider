@@ -14,6 +14,11 @@ user_url_template = 'https://m.weibo.cn/api/container/getIndex?type=uid&value=%s
 mblog_list_url_template = 'https://m.weibo.cn/api/container/getIndex?containerid=107603%s'
 mblog_list_url_with_page_template = '&page=%d'
 
+MONGODB_IP = '10.168.103.145'
+MONGODB_PORT = 27017
+MONGODB_USER = 'weibo'
+MONGODB_PWD = '1q2w3e4r5t'
+
 STATUS_OUTSTANDING = 0
 STATUS_PROCESSING = 1
 STATUS_COMPLETE = 2

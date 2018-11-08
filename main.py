@@ -10,9 +10,9 @@ if __name__ == '__main__':
             print('mids_crawler.running ----------------------------------------')
             mids_crawler.run()
 
+            # mblogs crawler
             count = get_outstanding_mids_num()
             print('outstanding mids: {}'.format(count))
-
             if count != 0:
                 n = int((count-1)/10000) + 1
                 print('mblogs_crawler.running --------------------------------------')
@@ -24,6 +24,15 @@ if __name__ == '__main__':
 
             print('handle_status_with_status_error_exception -------------------')
             mongoctl.handle_mids_with_status_error_exception()
+
+            # repeat mblogs crawler
+            count = get_outstanding_mids_num()
+            print('outstanding mids to retry: {}'.format(count))
+            if count != 0:
+                n = int((count - 1) / 10000) + 1
+                print('mblogs_crawler.running --------------------------------------')
+                for i in range(n):
+                    mblogs_crawler.run()
 
         except Exception as e:
             print(time.asctime())

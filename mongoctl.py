@@ -7,7 +7,8 @@ import json
 
 class MongoCtl:
     def __init__(self):
-        self.client = MongoClient()
+        self.client = MongoClient(MONGODB_IP, MONGODB_PORT)
+        self.client.admin.authenticate(MONGODB_USER, MONGODB_PWD)
         self.weibo = self.client.weibo
 
         # queue
@@ -114,12 +115,16 @@ if __name__ == '__main__':
     former_status = STATUS_PROCESSING
     status = STATUS_OUTSTANDING
 
-    data = mongoctl.client.test.mids.find()
-    print(data.count())
+    # data = mongoctl.client.test.mids.find()
+    # print(data.count())
 
     # data = mongoctl.mids.find({'status': STATUS_ERROR}, sort=[('update_time', pymongo.DESCENDING)])
     # mongoctl.client.test.mids.insert(data)
 
     # data = mongoctl.client.test.mids.find({'status': STATUS_ERROR}, sort=[('update_time', pymongo.DESCENDING)])
 
-    mongoctl.handle_mids_with_status_error_exception()
+    # mongoctl.handle_mids_with_status_error_exception()
+
+    data = mongoctl.mblogs.find()
+    print(data.count())
+
