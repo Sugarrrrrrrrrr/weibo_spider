@@ -1,0 +1,43 @@
+version: 1
+formatters:
+  onlyMessage:
+    format: "%(message)s"
+  brief:
+    format: "%(asctime)s - %(message)s"
+  simple:
+    format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+handlers:
+  console:
+    class : logging.StreamHandler
+    formatter: onlyMessage
+    level   : INFO
+    stream  : ext://sys.stdout
+  file:
+    class : logging.FileHandler
+    formatter: simple
+    level: DEBUG
+    filename: log/debug.log
+  analyze:
+    class: logging.handlers.RotatingFileHandler
+    level: DEBUG
+    formatter: simple
+    filename: log/error.log
+    maxBytes: 10485760
+    backupCount: 20
+    encoding: utf8
+loggers:
+  main:
+    level: DEBUG
+    handlers: [console]
+  main.utils:
+    level: DEBUG
+    handlers: [file]
+  main.mongoctl:
+    level: DEBUG
+    handlers: [file]
+  main.analyze:
+    level: DEBUG
+    handlers: [analyze]
+root:
+  level: WARN
+  handlers: []

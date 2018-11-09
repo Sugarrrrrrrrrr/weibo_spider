@@ -1,23 +1,20 @@
-from utils import run_with_threads, update_user_data_and_mids_queue
-from settings import *
+from utils import mids_crawl
+from logging_config import setup_logging
+from settings import logging_config
 import time
+import logging
 
 
 def run():
-    uids = list()
-    with open('uids.txt', 'r') as f:
-        for line in f:
-            uids.append(line.strip())
+    logger = logging.getLogger('main')
 
     begin_time = time.asctime()
-    run_with_threads(update_user_data_and_mids_queue, uids, max_thread_num_for_mids_crawl)
+    mids_crawl()
     end_time = time.asctime()
 
-    print('mids_crawl:')
-    print(begin_time)
-    print(end_time)
-    print('----------')
+    logger.info('mids_crawl:\n%s\n%s\n----------', begin_time, end_time)
 
 
 if __name__ == '__main__':
+    setup_logging(logging_config)
     run()
