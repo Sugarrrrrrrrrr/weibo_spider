@@ -181,5 +181,5 @@ dmypy.json
 .pyre/
 
 # others
-Test/download/*
+Test/
 log/*

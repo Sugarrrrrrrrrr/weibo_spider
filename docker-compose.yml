@@ -1,0 +1,9 @@
+version: "3"
+
+services:
+  weibo_spider:
+    build: .
+    command: python3 main.py
+    volumes:
+      - .:/code
+    

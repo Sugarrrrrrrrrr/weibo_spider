@@ -35,7 +35,14 @@ def get_dict_with_url(url, max_retry_time=max_retry_time):
             r_d = json.loads(r.text)
             if r_d['ok'] == 0:
                 # log
-                if r['msg'] != "\u8fd9\u91cc\u8fd8\u6ca1\u6709\u5185\u5bb9":
+                if r_d['msg'] == "\u8fd9\u91cc\u8fd8\u6ca1\u6709\u5185\u5bb9":
+                    pass
+                elif r_d['msg'] == "\u8bf7\u6c42\u8fc7\u4e8e\u9891\u7e41,\u6b47\u6b47\u5427":
+                    if r_d['erron'] == "100005":
+                        pass
+                    else:
+                        logger.debug(r.text)
+                else:
                     logger.debug(r.text)
                 pass
             return r_d
@@ -50,6 +57,8 @@ def get_dict_with_url(url, max_retry_time=max_retry_time):
                 pass
             elif isinstance(e, requests.exceptions.ConnectionError):
                 pass
+            elif isinstance(e, TypeError):
+                logger.debug('TypeError:\n%s\n%s\n%s', r.text, url, type(r_d['msg']), exc_info=True)
             else:
                 logger_analyze.debug('in get_dict_with_url: %s', type(e), exc_info=True)
                 # print(type(e), e)
