@@ -190,7 +190,7 @@ if __name__ == '__main__':
     mid = '4270446973039872'
 
     uids = list()
-    with open('uids.txt', 'r') as f:
+    with open('uids_1000.txt', 'r') as f:
         for line in f:
             uids.append(line.strip())
 

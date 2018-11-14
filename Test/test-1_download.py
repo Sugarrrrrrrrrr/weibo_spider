@@ -92,7 +92,7 @@ def deal_c(text):
 if __name__ == '__main__':
 
     uids = list()
-    with open('uids.txt', 'r') as f:
+    with open('uids_1000.txt', 'r') as f:
         for i in range(100):
             uid = f.readline().split()[0]
             uids.append(uid)
