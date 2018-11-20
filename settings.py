@@ -7,8 +7,8 @@ max_continuous_failures_for_uid = 10
 timeout = 10
 max_page_num = 50
 max_thread_num_for_mblogs_crawl = 100
-max_thread_num_for_mids_crawl = 50
-max_thread_num_for_mids_add = 5
+max_thread_num_for_mids_crawl = 100
+max_thread_num_for_mids_add = 10
 
 logging_config = 'logging_config.yaml'
 
@@ -24,5 +24,6 @@ MONGODB_PWD = '1q2w3e4r5t'
 
 STATUS_OUTSTANDING = 0
 STATUS_PROCESSING = 1
-STATUS_COMPLETE = 2
+STATUS_COMPLETE = 2             # for mids
 STATUS_ERROR = 3
+STATUS_NEW_ADDED = 4            # for uids

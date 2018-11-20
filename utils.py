@@ -35,10 +35,15 @@ def get_dict_with_url(url, max_retry_time=max_retry_time):
             r_d = json.loads(r.text)
             if r_d['ok'] == 0:
                 # log
-                if r_d['msg'] == "\u8fd9\u91cc\u8fd8\u6ca1\u6709\u5185\u5bb9":
+                if r_d['msg'] == "\u8fd9\u91cc\u8fd8\u6ca1\u6709\u5185\u5bb9":  # 这里还没有内容
                     pass
-                elif r_d['msg'] == "\u8bf7\u6c42\u8fc7\u4e8e\u9891\u7e41,\u6b47\u6b47\u5427":
-                    if r_d['erron'] == "100005":
+                elif r_d['msg'] == "\u8bf7\u6c42\u8fc7\u4e8e\u9891\u7e41,\u6b47\u6b47\u5427":   # 请求过于频繁,歇歇吧
+                    if r_d['errno'] == "100005":
+                        pass
+                    else:
+                        logger.debug(r.text)
+                elif r_d['msg'] == "\u670d\u52a1\u5668\u8d70\u4e22\u4e86":      # 服务器走丢了
+                    if r_d['errno'] == "100001":
                         pass
                     else:
                         logger.debug(r.text)
@@ -76,7 +81,8 @@ def get_user_url(uid):
 
 def update_user_data_and_mids_queue(uid):
     if not mongoctl.change_uid_status(uid, STATUS_PROCESSING, former_status=STATUS_OUTSTANDING):
-        return
+        if not mongoctl.change_uid_status(uid, STATUS_PROCESSING, former_status=STATUS_NEW_ADDED):
+            return
     url = get_user_url(uid)
     r_d = get_dict_with_url(url)
     if r_d['ok'] == 1:
@@ -176,8 +182,8 @@ def mblogs_crawl(n=10000, thread_num=max_thread_num_for_mblogs_crawl):
     run_with_threads(get_mblog_by_mid, mids, thread_num)
 
 
-def mids_crawl(n=10000, thread_num=max_thread_num_for_mblogs_crawl):
-    uids = mongoctl.get_uids_to_crawl(n)
+def mids_crawl(n=10000, status=STATUS_OUTSTANDING, thread_num=max_thread_num_for_mids_crawl):
+    uids = mongoctl.get_uids_to_crawl(n, status)
     run_with_threads(update_user_data_and_mids_queue, uids, thread_num)
 
 
@@ -190,7 +196,7 @@ if __name__ == '__main__':
     mid = '4270446973039872'
 
     uids = list()
-    with open('uids_1000.txt', 'r') as f:
+    with open('Test/uids_1000.txt', 'r') as f:
         for line in f:
             uids.append(line.strip())
 
@@ -200,6 +206,13 @@ if __name__ == '__main__':
 
     r_d = get_dict_with_url(url)
     print(r_d)
+
+    uids = list()
+    with open('Test/uids.txt', 'r') as f:
+        for line in f:
+            uids.append(line.strip())
+    input(len(uids))
+    add_uids_to_workqueue(uids)
 
 
 

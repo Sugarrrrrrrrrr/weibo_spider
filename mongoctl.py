@@ -20,6 +20,9 @@ class MongoCtl:
         self.users = self.weibo.users
         self.mblogs = self.weibo.mblogs
 
+        # config
+        self.config = self.weibo.config
+
         # log
         self.logger = logging.getLogger('main.mongoctl')
         self.logger_analyze = logging.getLogger('main.analyze')
@@ -61,14 +64,14 @@ class MongoCtl:
             self.mids.insert_one(data)
             return True
 
-    def add_new_uid(self, uid):
+    def add_new_uid(self, uid, status=STATUS_NEW_ADDED):
         if self.uids.find_one({'uid': int(uid)}):
             # print('uid {} has already existed.'.format(uid))
             return False
         else:
             data = {
                 'uid': int(uid),
-                'status': STATUS_OUTSTANDING,
+                'status': status,
                 'updated': time.time(),
                 'failures': 0
             }
@@ -93,12 +96,12 @@ class MongoCtl:
             mids.append(record['mid'])
         return mids
 
-    def get_uids_to_crawl(self, n=10000):
+    def get_uids_to_crawl(self, n=10000, status=STATUS_OUTSTANDING):
         # drop uids with max_continuous_failures_for_uid
         self.handle_uids_with_max_failures()
 
         uids = list()
-        data = self.uids.find({'status': STATUS_OUTSTANDING}, sort=[('updated', pymongo.ASCENDING)]).limit(n)
+        data = self.uids.find({'status': status}, sort=[('updated', pymongo.ASCENDING)]).limit(n)
         for record in data:
             uids.append(record['uid'])
         return uids
@@ -166,6 +169,13 @@ class MongoCtl:
     def handle_uids_with_max_failures(self):
         self.uids.remove({'failures': {'$gte': max_continuous_failures_for_uid}})
 
+    def get_config_mainloop(self):
+        config = self.config.find_one()
+        if config:
+            if config['mainloop'] is True:
+                return True
+        return False
+
 
 if __name__ == '__main__':
     mongoctl = MongoCtl()
@@ -173,59 +183,9 @@ if __name__ == '__main__':
     former_status = STATUS_PROCESSING
     status = STATUS_OUTSTANDING
 
-    # data = mongoctl.client.test.mids.find()
-    # print(data.count())
+    # mongoctl.uids.update_many({}, {'$set': {'status': STATUS_NEW_ADDED}})
+    ml = mongoctl.get_config_mainloop()
+    print(ml)
 
-    # data = mongoctl.mids.find({'status': STATUS_ERROR}, sort=[('update_time', pymongo.DESCENDING)])
-    # mongoctl.client.test.mids.insert(data)
 
-    # data = mongoctl.client.test.mids.find({'status': STATUS_ERROR}, sort=[('update_time', pymongo.DESCENDING)])
 
-    # mongoctl.handle_mids_with_status_error_exception()
-
-    mongoctl.handle_mids_with_status_processing_exception()
-
-    s1 = set()
-    data = mongoctl.uids.find({'failures': 0})
-    for record in data:
-        s1.add(record['uid'])
-
-    s2 = set()
-    data = mongoctl.uids.find({'failures': 1})
-    for record in data:
-        s2.add(record['uid'])
-
-    s3 = set()
-    data = mongoctl.uids.find({'failures': 2})
-    for record in data:
-        s3.add(record['uid'])
-
-    s4 = set()
-    data = mongoctl.uids.find({'failures': 3})
-    for record in data:
-        s4.add(record['uid'])
-
-    sx = set()
-    data = mongoctl.users.find()
-    for record in data:
-        sx.add(record['userInfo']['id'])
-
-    print(1, 'x', '____')
-    for s in s1:
-        if s not in sx:
-            print(s)
-
-    print(2, 'x', '____')
-    for s in s2:
-        if s in sx:
-            print(s)
-
-    print(3, 'x', '____')
-    for s in s3:
-        if s in sx:
-            print(s)
-
-    print(4, 'x', '____')
-    for s in s4:
-        if s in sx:
-            print(s)
