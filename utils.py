@@ -191,6 +191,12 @@ def get_outstanding_mids_num():
     return mongoctl.get_mids_num(STATUS_OUTSTANDING)
 
 
+def check_proxies():
+    for i in range(10):
+        r = requests.get('https://httpbin.org/ip', proxies=proxies)
+        print(r.text)
+
+
 if __name__ == '__main__':
     uid = '2214838982'
     mid = '4270446973039872'
@@ -200,19 +206,14 @@ if __name__ == '__main__':
         for line in f:
             uids.append(line.strip())
 
-    mid = '4303777261721996'
+    # mid = '4303777261721996'
     url = get_mblog_url(mid)
     print(url)
 
     r_d = get_dict_with_url(url)
     print(r_d)
 
-    uids = list()
-    with open('Test/uids.txt', 'r') as f:
-        for line in f:
-            uids.append(line.strip())
-    input(len(uids))
-    add_uids_to_workqueue(uids)
+    # check_proxies()
 
 
 
