@@ -11,14 +11,7 @@ if __name__ == '__main__':
     logger = logging.getLogger('main')
 
     # config
-    data = mongoctl.config.find_one()
-    if data is None:
-        # init config
-        mongoctl.config.insert({"mainloop": True})
-        pass
-
-    config_mainloop_set = {"mainloop": True}
-    mongoctl.config.update({}, {"$set": config_mainloop_set})
+    mongoctl.set_config_mainloop(True)
 
     while True:
         try:

@@ -61,7 +61,12 @@ class MongoCtl:
                 'status': STATUS_OUTSTANDING,
                 'update_time': time.time()
             }
-            self.mids.insert_one(data)
+            # self.mids.insert_one(data)
+            self.mids.update(
+                {'mid': mid},
+                data,
+                upsert=True
+            )
             return True
 
     def add_new_uid(self, uid, status=STATUS_NEW_ADDED):
@@ -75,7 +80,12 @@ class MongoCtl:
                 'updated': time.time(),
                 'failures': 0
             }
-            self.uids.insert_one(data)
+            # self.uids.insert_one(data)
+            self.uids.update(
+                {'uid': int(uid)},
+                data,
+                upsert=True
+            )
             return True
 
     def get_mid_to_crawl(self):
@@ -137,9 +147,37 @@ class MongoCtl:
         return self.mids.find({'status': status}).count()
 
     def handle_mids_with_status_processing_exception(self):
-        self.mids.update_many(
-            {'status': STATUS_PROCESSING}, {'$set': {'status': STATUS_OUTSTANDING}}
-        )
+        data = self.mids.find({'status': 1})
+        for record in data:
+            mid = record['mid']
+            rs = self.mids.find({'mid': mid})
+            count = rs.count()
+            if count == 1:
+                print(count)
+            elif count == 2:
+                status = STATUS_PROCESSING
+                for r in rs:
+                    if r['status'] != STATUS_PROCESSING:
+                        status = r['status']
+                if status == STATUS_OUTSTANDING:
+                    print(count, 'STATUS_OUTSTANDING')
+                elif status == STATUS_COMPLETE:
+                    mblog = self.mblogs.find_one({'mid': mid})
+                    if mblog is None:
+                        print(count, 'STATUS_COMPLETE', 'mid not in mblogs')
+                    else:
+                        self.mids.remove({'mid': mid, 'status': STATUS_PROCESSING})
+                    pass
+                elif status == STATUS_ERROR:
+                    mblog = self.mblogs.find_one({'mid': mid})
+                    if mblog is None:
+                        self.mids.remove({'mid': mid, 'status': STATUS_PROCESSING})
+                    else:
+                        print(count, 'STATUS_ERROR', 'mid in mblogs')
+                else:
+                    print(count, 'STATUS_OTHERS')
+            else:
+                print(count)
 
     def handle_mids_with_status_error_exception(self, n=10000):
         # 1
@@ -176,6 +214,16 @@ class MongoCtl:
                 return True
         return False
 
+    def set_config_mainloop(self, mainloop=False):
+        data = self.config.find_one()
+        config_mainloop_set = {"mainloop": mainloop}
+        if data is None:
+            # init config
+            self.config.insert(config_mainloop_set)
+            pass
+        else:
+            self.config.update({}, {"$set": config_mainloop_set})
+
 
 if __name__ == '__main__':
     mongoctl = MongoCtl()
@@ -184,8 +232,9 @@ if __name__ == '__main__':
     status = STATUS_OUTSTANDING
 
     # mongoctl.uids.update_many({}, {'$set': {'status': STATUS_NEW_ADDED}})
-    ml = mongoctl.get_config_mainloop()
-    print(ml)
+    mongoctl.handle_mids_with_status_processing_exception()
+
+
 
 
 
