@@ -232,7 +232,15 @@ if __name__ == '__main__':
     status = STATUS_OUTSTANDING
 
     # mongoctl.uids.update_many({}, {'$set': {'status': STATUS_NEW_ADDED}})
-    mongoctl.handle_mids_with_status_processing_exception()
+    # mongoctl.handle_mids_with_status_processing_exception()
+
+    q = {}
+    data = mongoctl.users.find(q).limit(10000)
+    with open('user.txt', 'w') as f:
+        for r in data:
+            userInfo = r['userInfo']
+            s = json.dumps(userInfo)
+            # f.write('%s\n' % s)
 
 
 

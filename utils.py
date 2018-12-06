@@ -62,6 +62,8 @@ def get_dict_with_url(url, max_retry_time=max_retry_time):
                 pass
             elif isinstance(e, requests.exceptions.ConnectionError):
                 pass
+            elif isinstance(e, requests.exceptions.ChunkedEncodingError):
+                pass
             elif isinstance(e, TypeError):
                 logger.debug('TypeError:\n%s\n%s\n%s', r.text, url, type(r_d['msg']), exc_info=True)
             else:
@@ -213,7 +215,7 @@ if __name__ == '__main__':
     r_d = get_dict_with_url(url)
     print(r_d)
 
-    # check_proxies()
+    check_proxies()
 
 
 
