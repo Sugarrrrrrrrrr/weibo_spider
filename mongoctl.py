@@ -2,6 +2,7 @@ from settings import *
 import pymongo
 from pymongo import MongoClient
 import time
+import datetime
 import logging
 import json
 
@@ -146,6 +147,9 @@ class MongoCtl:
     def get_mids_num(self, status=STATUS_OUTSTANDING):
         return self.mids.find({'status': status}).count()
 
+    def get_uids_num(self, status=STATUS_OUTSTANDING):
+        return self.uids.find({'status': status}).count()
+
     def handle_mids_with_status_processing_exception(self):
         data = self.mids.find({'status': 1})
         for record in data:
@@ -214,6 +218,7 @@ class MongoCtl:
                 return True
         return False
 
+    # set Fasle to stop mainloop
     def set_config_mainloop(self, mainloop=False):
         data = self.config.find_one()
         config_mainloop_set = {"mainloop": mainloop}
@@ -223,6 +228,25 @@ class MongoCtl:
             pass
         else:
             self.config.update({}, {"$set": config_mainloop_set})
+
+    #
+    def add_timestamp_for_mblogs(self, n=10000, max_times=0):
+        j = 0
+        while True:
+            j += 1
+
+            data = self.mblogs.find({'created_timestamp': {'$exists': False}}).limit(n)
+            i = 0
+            for i, r in enumerate(data):
+                created_at = r['created_at']
+                mid = r['mid']
+                ts = datetime.datetime.strptime(created_at, "%a %b %d %H:%M:%S %z %Y").timestamp()
+                self.mblogs.update_one({'mid': mid}, {'$set': {'created_timestamp': ts}})
+            if i + 1 != n:
+                break
+
+            if max_times != 0 and j == max_times:
+                break
 
 
 if __name__ == '__main__':
@@ -234,13 +258,10 @@ if __name__ == '__main__':
     # mongoctl.uids.update_many({}, {'$set': {'status': STATUS_NEW_ADDED}})
     # mongoctl.handle_mids_with_status_processing_exception()
 
-    q = {}
-    data = mongoctl.users.find(q).limit(10000)
-    with open('user.txt', 'w') as f:
-        for r in data:
-            userInfo = r['userInfo']
-            s = json.dumps(userInfo)
-            # f.write('%s\n' % s)
+    # mongoctl.add_timestamp_for_mblogs(20, 10)
+
+
+
 
 
 

@@ -193,6 +193,15 @@ def get_outstanding_mids_num():
     return mongoctl.get_mids_num(STATUS_OUTSTANDING)
 
 
+def get_outstanding_uids_num():
+    return mongoctl.get_uids_num(STATUS_OUTSTANDING)
+
+
+#
+def add_timestamp_for_mblogs(n=10000, max_times=0):
+    mongoctl.add_timestamp_for_mblogs(n, max_times)
+
+
 def check_proxies():
     for i in range(10):
         r = requests.get('https://httpbin.org/ip', proxies=proxies)
@@ -215,7 +224,10 @@ if __name__ == '__main__':
     r_d = get_dict_with_url(url)
     print(r_d)
 
-    check_proxies()
+    # check_proxies()
+
+    print(get_outstanding_mids_num())
+    print(get_outstanding_uids_num())
 
 
 
