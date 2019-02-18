@@ -1,6 +1,7 @@
 
 
-proxies = {'https': 'http://10.168.103.145:3128'}
+proxies = {'http': 'http://10.168.103.145:3128',
+           'https': 'https://10.168.103.145:3128'}
 max_retry_time = 10
 error_mid_max_retry_time = 5
 max_continuous_failures_for_uid = 10
