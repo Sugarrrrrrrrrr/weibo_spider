@@ -255,11 +255,8 @@ if __name__ == '__main__':
     former_status = STATUS_PROCESSING
     status = STATUS_OUTSTANDING
 
-    # mongoctl.uids.update_many({}, {'$set': {'status': STATUS_NEW_ADDED}})
-    # mongoctl.handle_mids_with_status_processing_exception()
-
-    # mongoctl.add_timestamp_for_mblogs(20, 10)
-
+    uids = mongoctl.get_uids_to_crawl()
+    print(len(uids))
 
 
 

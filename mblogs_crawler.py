@@ -20,4 +20,4 @@ if __name__ == '__main__':
 
     times = 1
     for i in range(times):
-        run(10740)
+        run(50)

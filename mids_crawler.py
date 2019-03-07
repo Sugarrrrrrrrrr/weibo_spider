@@ -19,4 +19,4 @@ def run(n=10000, status=STATUS_OUTSTANDING):
 if __name__ == '__main__':
     setup_logging(logging_config)
     # run(100, status=STATUS_NEW_ADDED)
-    run()
+    run(1)

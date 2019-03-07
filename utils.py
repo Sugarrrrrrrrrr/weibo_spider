@@ -31,8 +31,8 @@ def run_with_threads(func, tasks, number_of_threads=100):
 def get_dict_with_url(url, max_retry_time=max_retry_time):
     for i in range(max_retry_time):
         try:
-            r = requests.get(url, proxies=proxies, timeout=timeout)
-            r_d = json.loads(r.text)
+            with requests.get(url, proxies=proxies, timeout=timeout) as r:
+                r_d = json.loads(r.text)
             if r_d['ok'] == 0:
                 # log
                 if r_d['msg'] == "\u8fd9\u91cc\u8fd8\u6ca1\u6709\u5185\u5bb9":  # 这里还没有内容
@@ -209,7 +209,8 @@ def check_proxies():
 
 
 if __name__ == '__main__':
-    uid = '2214838982'
+    # uid = '2214838982'
+    uid = '5044281310'
     mid = '4270446973039872'
 
     uids = list()
@@ -228,6 +229,8 @@ if __name__ == '__main__':
 
     print(get_outstanding_mids_num())
     print(get_outstanding_uids_num())
+
+    # update_user_data_and_mids_queue(uid)
 
 
 
