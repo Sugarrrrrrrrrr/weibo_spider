@@ -222,8 +222,8 @@ if __name__ == '__main__':
     url = get_mblog_url(mid)
     print(url)
 
-    r_d = get_dict_with_url(url)
-    print(r_d)
+    # r_d = get_dict_with_url(url)
+    # print(r_d)
 
     # check_proxies()
 
